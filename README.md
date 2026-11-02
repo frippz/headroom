@@ -8,6 +8,8 @@ Originally based on
 by Saeed Kolivand, since cut down to the limits alone. It has no updater,
 never writes Claude Code's credentials, and does not read your transcripts.
 
+![Headroom in the menu bar, its popover and a desktop widget, showing the five-hour and weekly limits](docs/screenshot.png)
+
 ## Build and install
 
 Requires macOS 14 or later, Xcode, and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
