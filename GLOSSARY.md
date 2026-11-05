@@ -50,6 +50,11 @@ How fast the five-hour limit's utilization rises, in percentage points per
 hour, measured across the app's own readings.
 _Avoid_: speed, velocity
 
+**Weekly trend**:
+The weekly limit's utilization across its window, from readings the app saves
+once the user opts in, and where it is heading by the reset.
+_Avoid_: history, usage graph
+
 ### State
 
 **Level**:

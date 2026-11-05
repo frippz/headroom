@@ -65,7 +65,28 @@ final class RenderSnapshotTests: XCTestCase {
                 fiveHour: UsageNode(utilization: 42, resetsAt: nil), sevenDay: nil),
                 error: "network", stale: true)),
             ("no-data", nil),
+            ("trend-on-pace", trend(.previewPlain, pct: 28, elapsedDays: 3, shape: [2, 5, 18, 22, 28])),
+            ("trend-runs-out", trend(.preview, pct: 74, elapsedDays: 4, shape: [6, 30, 44, 60, 74])),
+            ("trend-first-day", trend(.previewPlain, pct: 9, elapsedDays: 0.5, shape: [])),
+            ("trend-limit-reached", trend(.previewPlain, pct: 100, elapsedDays: 5, shape: [30, 55, 80, 100])),
+            ("trend-no-readings", trend(.previewPlain, pct: 40, elapsedDays: 3, shape: [])),
         ]
+    }
+
+    /// A week in progress with its readings spread evenly up to now.
+    private static func trend(_ base: Snapshot, pct: Double, elapsedDays: Double,
+                              shape: [Double]) -> Snapshot {
+        var snapshot = base
+        let now = Date()
+        let elapsed = elapsedDays * 86400
+        snapshot.weeklyPct = pct
+        snapshot.weeklyResetsAt = now.addingTimeInterval(WeeklyTrend.window - elapsed)
+        snapshot.updatedAt = now
+        snapshot.weeklyReadings = shape.enumerated().map { index, reading in
+            WeeklyReading(at: now.addingTimeInterval(-elapsed * (1 - Double(index + 1) / Double(shape.count + 1))),
+                          pct: reading)
+        }
+        return snapshot
     }
 
     /// Only the percentages differ from the typical case — everything else stays

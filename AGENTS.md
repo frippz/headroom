@@ -34,9 +34,9 @@ Read only the documentation your task needs:
 
 This is a personal app kept deliberately small: the five-hour and weekly
 limits, read-only credentials, no updater. Do not reintroduce removed
-features (cost and token tracking, history, budgets, the statusline
-installer, auto-switch, styled widget faces, self-update) unless the
-developer asks for that feature by name.
+features (cost and token tracking, history beyond the opt-in weekly trend,
+budgets, the statusline installer, auto-switch, styled widget faces,
+self-update) unless the developer asks for that feature by name.
 
 ## Verification and handoff
 

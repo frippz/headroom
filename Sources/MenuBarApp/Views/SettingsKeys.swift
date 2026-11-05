@@ -12,6 +12,7 @@ enum SettingsKey {
     static let refreshInterval = "refreshInterval"
     static let notifyThreshold = "notifyThreshold"
     static let hotkey = "hotkey"
+    static let saveWeeklyReadings = "saveWeeklyReadings"
 }
 
 /// How often the app polls. Seconds, because that is what the sleep takes.

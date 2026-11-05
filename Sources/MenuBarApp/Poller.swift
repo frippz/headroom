@@ -31,6 +31,7 @@ final class Poller: ObservableObject {
             RefreshInterval.tenMinutes.rawValue)
     }
     @AppStorage(SettingsKey.notifyThreshold) private var notifyThreshold = true
+    @AppStorage(SettingsKey.saveWeeklyReadings) private var saveWeeklyReadings = false
 
     private var loop: Task<Void, Never>?
     /// Only the wait, never the poll — see wakeNow().
@@ -121,8 +122,11 @@ final class Poller: ObservableObject {
         let live = Set(profiles.map(\.id))
         monitors = monitors.filter { live.contains($0.key) }
 
+        let saved = SnapshotBundle.read()
         for profile in profiles where monitors[profile.id] == nil {
-            monitors[profile.id] = ProfileMonitor(profile: profile)
+            monitors[profile.id] = ProfileMonitor(
+                profile: profile,
+                weeklyReadings: saved?.profiles[profile.id]?.weeklyReadings ?? [])
         }
 
         if let active = activeProfile, selectedProfile != active.id {
@@ -203,6 +207,7 @@ final class Poller: ObservableObject {
             bundle.profiles[profile.id] = await monitor.snapshot(
                 force: force, warn: warn, critical: critical,
                 label: labelled ? profile.displayName : nil,
+                tracksWeekly: saveWeeklyReadings,
                 // Three polls, whatever the interval — otherwise picking a
                 // five-minute refresh would label one-poll-old numbers outdated.
                 staleAfter: Double(pollSeconds) * 3)

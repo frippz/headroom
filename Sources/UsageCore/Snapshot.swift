@@ -25,6 +25,9 @@ public struct Snapshot: Codable, Sendable, Equatable {
     /// WidgetKit reload, and an unrounded rate would differ on every single poll
     /// — which is exactly the budget problem that comparison exists to solve.
     public var burnRatePerHour: Double?
+    /// This window's saved weekly readings, oldest first. Nil unless the
+    /// user's opt-in setting is on, and the widget draws no graph then.
+    public var weeklyReadings: [WeeklyReading]?
     /// Non-nil when the last refresh failed: "no-token", "token-expired",
     /// "http-401", "network", "bad-json".
     public var error: String?

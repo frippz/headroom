@@ -53,6 +53,11 @@ public struct SnapshotBundle: Codable, Sendable, Equatable {
         copy.profiles = copy.profiles.mapValues {
             var snapshot = $0
             snapshot.updatedAt = .distantPast
+            // The line ends at `weeklyPct`, so a reading can only change what is
+            // drawn along with that number. An idle hour's reading would
+            // otherwise spend a reload on the same flat line; whether there are
+            // readings at all is the setting, and that does draw differently.
+            snapshot.weeklyReadings = snapshot.weeklyReadings.map { _ in [] }
             return snapshot
         }
         return copy

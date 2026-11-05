@@ -22,8 +22,13 @@ public actor ProfileMonitor {
     /// large turn reads as an implausible rate.
     private static let minGap: TimeInterval = 120
 
-    public init(profile: Profile) {
+    /// Saved only by being published: `bundle.json` holds them for the widget
+    /// anyway, so a relaunch seeds them from there rather than from a second file.
+    private var readings: [WeeklyReading]
+
+    public init(profile: Profile, weeklyReadings: [WeeklyReading] = []) {
         self.profile = profile
+        self.readings = weeklyReadings
         self.api = UsageAPI(profile: profile)
     }
 
@@ -33,6 +38,7 @@ public actor ProfileMonitor {
         warn: Double = 50,
         critical: Double = 80,
         label: String? = nil,
+        tracksWeekly: Bool = false,
         staleAfter: TimeInterval = 180
     ) async -> Snapshot {
         let result = await api.fetch(force: force, staleAfter: staleAfter)
@@ -46,7 +52,24 @@ public actor ProfileMonitor {
                                 warn: warn, critical: critical)
         snapshot.profileLabel = label
         snapshot.burnRatePerHour = burnRate(for: result.data?.fiveHour?.utilization)
+        snapshot.weeklyReadings = weeklyReadings(tracking: tracksWeekly, result: result)
         return snapshot
+    }
+
+    /// Nil when the setting is off, and forgets what it had: the next write of
+    /// `bundle.json` is what deletes them from disk.
+    ///
+    /// A failed fetch serves the cached numbers, which are not a new reading.
+    func weeklyReadings(tracking: Bool, result: FetchResult, now: Date = Date()) -> [WeeklyReading]? {
+        guard tracking else {
+            readings = []
+            return nil
+        }
+        if result.error == nil, let week = result.data?.sevenDay, let resetsAt = week.resetsAt {
+            readings = WeeklyTrend.adding(pct: week.utilization, resetsAt: resetsAt,
+                                          to: readings, now: now)
+        }
+        return readings
     }
 
     /// Percentage points per hour on the five-hour window, measured across this
