@@ -53,7 +53,7 @@ struct GeneralSettings: View {
                     // Now rather than at the next poll, so turning it off deletes
                     // the readings when it says it does.
                     .onChange(of: saveWeeklyReadings) { _, _ in poller.wakeNow() }
-                Text("Saves each profile's weekly limit percentage about once an hour, to draw a trend graph on medium and large widgets. Readings stay on this Mac, are cleared at each reset, and are deleted when you turn this off.")
+                Text("Saves each profile's weekly limit percentage about once an hour, to draw a trend graph in the menu and on medium and large widgets. Readings stay on this Mac, are cleared at each reset, and are deleted when you turn this off.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } header: {

@@ -5,7 +5,7 @@ import SwiftUI
 /// diagonal is spending faster than the limit allows for.
 struct WeeklyTrendChart: View {
     let snapshot: Snapshot
-    /// Large has room for what the window's ends are; medium does not.
+    /// Whether there is room to say what the window's ends are.
     var showsDays = false
     @Environment(\.colorScheme) private var scheme
 

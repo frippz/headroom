@@ -65,8 +65,8 @@ polls of active use have gone by.
 ## Weekly trend
 
 Off by default. **Save weekly readings** in Settings → General makes the app save
-each profile's weekly utilization about once an hour, and medium and large
-widgets then draw it as a graph: spending so far, an even pace to compare with,
+each profile's weekly utilization about once an hour. The menu and medium and
+large widgets then draw it as a graph: spending so far, an even pace to compare with,
 and a projection to the reset, with a line of text saying where that ends up.
 
 The projection uses the window's average rate and starts after the first day.
