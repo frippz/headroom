@@ -8,7 +8,7 @@ Originally based on
 by Saeed Kolivand, since cut down to the limits alone. It has no updater,
 never writes Claude Code's credentials, and does not read your transcripts.
 
-![Headroom: its icon and tagline, the menu bar ring in its three threshold colours, a small widget, and the popover showing the five-hour and weekly limits](docs/screenshot.png)
+![Headroom: its icon and tagline, the menu bar ring in its three threshold colours, a small widget, and the popover showing the five-hour and weekly limits with the weekly trend graph](docs/screenshot.png)
 
 ## Build and install
 
