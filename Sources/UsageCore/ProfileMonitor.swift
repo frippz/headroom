@@ -52,15 +52,18 @@ public actor ProfileMonitor {
                                 warn: warn, critical: critical)
         snapshot.profileLabel = label
         snapshot.burnRatePerHour = burnRate(for: result.data?.fiveHour?.utilization)
-        snapshot.weeklyReadings = weeklyReadings(tracking: tracksWeekly, result: result)
+        snapshot.weeklyReadings = updateWeeklyReadings(tracking: tracksWeekly, result: result)
         return snapshot
     }
 
-    /// Nil when the setting is off, and forgets what it had: the next write of
-    /// `bundle.json` is what deletes them from disk.
+    public func forgetWeeklyReadings() {
+        readings = []
+    }
+
+    /// Nil when the setting is off, and forgets what it had.
     ///
     /// A failed fetch serves the cached numbers, which are not a new reading.
-    func weeklyReadings(tracking: Bool, result: FetchResult, now: Date = Date()) -> [WeeklyReading]? {
+    func updateWeeklyReadings(tracking: Bool, result: FetchResult, now: Date = Date()) -> [WeeklyReading]? {
         guard tracking else {
             readings = []
             return nil

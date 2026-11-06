@@ -63,6 +63,15 @@ public struct SnapshotBundle: Codable, Sendable, Equatable {
         return copy
     }
 
+    /// What turning the opt-in setting off leaves behind.
+    public mutating func removeWeeklyReadings() {
+        profiles = profiles.mapValues {
+            var snapshot = $0
+            snapshot.weeklyReadings = nil
+            return snapshot
+        }
+    }
+
     /// Exactly the named profile, or nil.
     ///
     /// Deliberately does not fall back: a widget configured for one account and

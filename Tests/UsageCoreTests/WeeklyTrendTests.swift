@@ -85,10 +85,10 @@ final class WeeklyTrendTests: XCTestCase {
     func testTurnedOffPublishesNothingAndForgetsWhatItHad() async {
         let monitor = ProfileMonitor(profile: monitorProfile, weeklyReadings: [reading(hoursAgo: 2, pct: 10)])
 
-        let off = await monitor.weeklyReadings(tracking: false, result: fresh(pct: 12), now: now)
+        let off = await monitor.updateWeeklyReadings(tracking: false, result: fresh(pct: 12), now: now)
         XCTAssertNil(off)
 
-        let onAgain = await monitor.weeklyReadings(tracking: true, result: fresh(pct: 12), now: now)
+        let onAgain = await monitor.updateWeeklyReadings(tracking: true, result: fresh(pct: 12), now: now)
         XCTAssertEqual(onAgain, [WeeklyReading(at: now, pct: 12)])
     }
 
@@ -96,7 +96,7 @@ final class WeeklyTrendTests: XCTestCase {
         let saved = [reading(hoursAgo: 2, pct: 10)]
         let monitor = ProfileMonitor(profile: monitorProfile, weeklyReadings: saved)
 
-        let readings = await monitor.weeklyReadings(tracking: true, result: fresh(pct: 12), now: now)
+        let readings = await monitor.updateWeeklyReadings(tracking: true, result: fresh(pct: 12), now: now)
         XCTAssertEqual(readings, saved + [WeeklyReading(at: now, pct: 12)])
     }
 
@@ -106,8 +106,33 @@ final class WeeklyTrendTests: XCTestCase {
 
         var failed = fresh(pct: 12)
         failed.error = "network"
-        let readings = await monitor.weeklyReadings(tracking: true, result: failed, now: now)
+        let readings = await monitor.updateWeeklyReadings(tracking: true, result: failed, now: now)
         XCTAssertEqual(readings, saved)
+    }
+
+    func testTurningOffRemovesReadingsFromTheFile() throws {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("bundle-\(UUID().uuidString)/bundle.json")
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+
+        var snapshot = Snapshot(updatedAt: now, usage: UsageData(
+            fiveHour: nil, sevenDay: UsageNode(utilization: 10, resetsAt: reset(afterDays: 3))))
+        snapshot.weeklyReadings = [reading(hoursAgo: 2, pct: 10)]
+        XCTAssertTrue(SnapshotBundle(profiles: ["p": snapshot]).write(to: url))
+
+        var saved = try XCTUnwrap(SnapshotBundle.read(from: url))
+        saved.removeWeeklyReadings()
+        XCTAssertTrue(saved.write(to: url))
+
+        XCTAssertFalse(try String(contentsOf: url, encoding: .utf8).contains("weeklyReadings"))
+    }
+
+    func testForgetLeavesNothingToComeBack() async {
+        let monitor = ProfileMonitor(profile: monitorProfile, weeklyReadings: [reading(hoursAgo: 2, pct: 10)])
+        await monitor.forgetWeeklyReadings()
+
+        let readings = await monitor.updateWeeklyReadings(tracking: true, result: fresh(pct: 12), now: now)
+        XCTAssertEqual(readings, [WeeklyReading(at: now, pct: 12)])
     }
 
     // MARK: - Reloads

@@ -135,7 +135,7 @@ git config core.hooksPath .githooks
 swift test                       # unit tests
 swift run usage-cli              # human-readable summary
 swift run usage-cli --profiles   # discovered profiles
-swift run usage-cli --json       # what the widget will render
+swift run usage-cli --json       # what the widget will render, less the weekly trend
 ```
 
 To build the app and widget without signing or installing, and to run the

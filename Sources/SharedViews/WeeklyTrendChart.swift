@@ -1,3 +1,4 @@
+import Charts
 import SwiftUI
 
 /// The weekly limit across its window: what has been spent so far, a dashed
@@ -14,10 +15,10 @@ struct WeeklyTrendChart: View {
            let pct = snapshot.pct(.weekly),
            let resetsAt = snapshot.weeklyResetsAt {
             let outlook = WeeklyTrend.outlook(pct: pct, resetsAt: resetsAt, now: snapshot.updatedAt)
-            let plot = TrendPlot(readings: readings, pct: pct, resetsAt: resetsAt,
-                                 now: snapshot.updatedAt, outlook: outlook)
+            let lines = TrendLines(readings: readings, pct: pct, resetsAt: resetsAt,
+                                   now: snapshot.updatedAt, outlook: outlook)
             VStack(alignment: .leading, spacing: 4) {
-                chart(plot)
+                chart(lines)
                 if showsDays { days(resetsAt) }
                 verdict(outlook)
             }
@@ -27,19 +28,34 @@ struct WeeklyTrendChart: View {
         }
     }
 
-    private func chart(_ plot: TrendPlot) -> some View {
+    private func chart(_ lines: TrendLines) -> some View {
         let tint = snapshot.tint(.weekly, scheme)
-        return ZStack {
-            Rectangle().fill(Color.primary.opacity(0.05))
-            TrendLine(points: [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 1)])
-                .stroke(Color.secondary.opacity(0.5), lineWidth: 1)
-            TrendLine(points: plot.projection)
-                .stroke(tint, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, dash: [2, 3]))
-            TrendLine(points: plot.spent)
-                .stroke(tint, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+        return Chart {
+            line("Even pace", lines.evenPace, Color.secondary.opacity(0.5), StrokeStyle(lineWidth: 1))
+            line("Projection", lines.projection, tint,
+                 StrokeStyle(lineWidth: 1.5, lineCap: .round, dash: [2, 3]))
+            line("Spent", lines.spent, tint,
+                 StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
         }
+        .chartXScale(domain: lines.start...lines.resetsAt)
+        .chartYScale(domain: 0...100)
+        .chartXAxis(.hidden)
+        .chartYAxis(.hidden)
+        .chartLegend(.hidden)
+        .chartPlotStyle { $0.background(Color.primary.opacity(0.05)) }
         .clipShape(RoundedRectangle(cornerRadius: 4))
         .frame(minHeight: 28)
+    }
+
+    private func line(_ name: String, _ points: [WeeklyReading], _ color: Color,
+                      _ style: StrokeStyle) -> some ChartContent {
+        ForEach(points, id: \.at) { point in
+            LineMark(x: .value("Time", point.at),
+                     y: .value("Utilization", min(point.pct, 100)),
+                     series: .value("Line", name))
+                .foregroundStyle(color)
+                .lineStyle(style)
+        }
     }
 
     /// Both ends fall on the same weekday, so the words say which end is which.
@@ -86,45 +102,36 @@ struct WeeklyTrendChart: View {
     }
 }
 
-/// The chart's lines in unit coordinates: x runs across the window, y up from
-/// 0 to 100 percent.
-private struct TrendPlot {
-    let spent: [CGPoint]
-    let projection: [CGPoint]
+/// The chart's lines, as readings along the window.
+private struct TrendLines {
+    let start: Date
+    let resetsAt: Date
+    let spent: [WeeklyReading]
+    let projection: [WeeklyReading]
+
+    var evenPace: [WeeklyReading] {
+        [WeeklyReading(at: start, pct: 0), WeeklyReading(at: resetsAt, pct: 100)]
+    }
 
     init(readings: [WeeklyReading], pct: Double, resetsAt: Date, now: Date, outlook: WeeklyOutlook) {
-        func x(_ date: Date) -> CGFloat {
-            let elapsed = WeeklyTrend.window - resetsAt.timeIntervalSince(date)
-            return CGFloat(min(max(elapsed / WeeklyTrend.window, 0), 1))
-        }
-        func y(_ pct: Double) -> CGFloat { CGFloat(min(max(pct / 100, 0), 1)) }
+        let start = resetsAt.addingTimeInterval(-WeeklyTrend.window)
+        self.start = start
+        self.resetsAt = resetsAt
 
-        let current = CGPoint(x: x(now), y: y(pct))
+        let current = WeeklyReading(at: now, pct: pct)
         // Every window starts at zero, so the line starts there even when the
         // first reading came later: a straight run up to it, for lack of better.
-        spent = [CGPoint(x: 0, y: 0)]
-            + readings.filter { $0.at < now }.map { CGPoint(x: x($0.at), y: y($0.pct)) }
+        spent = [WeeklyReading(at: start, pct: 0)]
+            + readings.filter { $0.at > start && $0.at < now }
             + [current]
 
         switch outlook {
         case .tooEarly, .limitReached:
             projection = []
         case let .onPace(pctAtReset):
-            projection = [current, CGPoint(x: 1, y: y(pctAtReset))]
+            projection = [current, WeeklyReading(at: resetsAt, pct: pctAtReset)]
         case let .runsOut(at):
-            projection = [current, CGPoint(x: x(at), y: 1)]
+            projection = [current, WeeklyReading(at: at, pct: 100)]
         }
-    }
-}
-
-private struct TrendLine: Shape {
-    let points: [CGPoint]
-
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.addLines(points.map {
-            CGPoint(x: rect.minX + $0.x * rect.width, y: rect.maxY - $0.y * rect.height)
-        })
-        return path
     }
 }

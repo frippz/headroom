@@ -186,6 +186,20 @@ final class Poller: ObservableObject {
         sleeper?.cancel()
     }
 
+    /// Deletes here rather than leaving it to the next poll, which may be ten
+    /// minutes away, or never come while there are no profiles to poll.
+    func weeklyReadingsSettingChanged() {
+        if !saveWeeklyReadings {
+            if var saved = SnapshotBundle.read() {
+                saved.removeWeeklyReadings()
+                saved.write()
+            }
+            let current = Array(monitors.values)
+            Task { for monitor in current { await monitor.forgetWeeklyReadings() } }
+        }
+        wakeNow()
+    }
+
     func refreshNow() {
         Task { await refresh(force: true) }
     }
@@ -213,6 +227,9 @@ final class Poller: ObservableObject {
                 staleAfter: Double(pollSeconds) * 3)
         }
         bundle.updatedAt = Date()
+        // The setting can have been turned off while this poll waited on the
+        // network, and the readings it fetched must not be written back.
+        if !saveWeeklyReadings { bundle.removeWeeklyReadings() }
 
         snapshot = activeProfile.flatMap { bundle.profiles[$0.id] }
         bundle.write()

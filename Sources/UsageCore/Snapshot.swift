@@ -26,7 +26,7 @@ public struct Snapshot: Codable, Sendable, Equatable {
     /// — which is exactly the budget problem that comparison exists to solve.
     public var burnRatePerHour: Double?
     /// This window's saved weekly readings, oldest first. Nil unless the
-    /// user's opt-in setting is on, and the widget draws no graph then.
+    /// user's opt-in setting is on, and no graph is drawn then.
     public var weeklyReadings: [WeeklyReading]?
     /// Non-nil when the last refresh failed: "no-token", "token-expired",
     /// "http-401", "network", "bad-json".
