@@ -36,6 +36,9 @@ echo "Version: ${VERSION_SETTINGS:-from project.yml}"
 
 # Must not be running, or the copy replaces a live bundle.
 osascript -e 'quit app "Headroom"' 2>/dev/null || true
+# Quitting the app leaves the extension alive, and macOS would go on drawing
+# widgets with its old code for days, ignoring whatever new fields bundle.json has.
+pkill -x HeadroomWidget || true
 rm -rf "/Applications/Headroom.app"
 cp -R "$APP" /Applications/
 
