@@ -62,6 +62,21 @@ The burn rate is measured, not reported: percentage points per hour across the
 app's own readings of the five-hour window. It shows nothing until a couple of
 polls of active use have gone by.
 
+## Weekly trend
+
+Off by default. **Save weekly readings** in Settings → General makes the app save
+each profile's weekly utilization about once an hour. The menu and medium and
+large widgets then draw it as a graph: spending so far, an even pace to compare with,
+and a projection to the reset, with a line of text saying where that ends up.
+
+The projection uses the window's average rate and starts after the first day.
+The API reports only when a window ends, so the graph takes it to have started
+seven days before. Before enough readings exist, the line runs straight from
+zero, as it does for any part of the week the app wasn't running.
+
+Readings are kept in `bundle.json` and nowhere else. They are cleared at each
+reset, and deleted when the setting is turned off.
+
 ## Profiles
 
 A profile is a Claude Code config folder, which means one logged-in account.
@@ -82,7 +97,7 @@ shows the name it looks for.
 
 | Tab | What's there |
 |---|---|
-| General | Refresh interval, open at login, global shortcut |
+| General | Refresh interval, open at login, global shortcut, [weekly trend](#weekly-trend) |
 | Display | Menu bar style and colour, which limit it shows, amber and red thresholds |
 | Alerts | Notifications when a limit crosses a threshold |
 | Profiles | Which account the menu bar shows, extra folders, rescan |
@@ -120,7 +135,7 @@ git config core.hooksPath .githooks
 swift test                       # unit tests
 swift run usage-cli              # human-readable summary
 swift run usage-cli --profiles   # discovered profiles
-swift run usage-cli --json       # what the widget will render
+swift run usage-cli --json       # what the widget will render, less the weekly trend
 ```
 
 To build the app and widget without signing or installing, and to run the

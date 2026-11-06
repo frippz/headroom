@@ -105,6 +105,7 @@ struct UsageWidgetView: View {
             MetricGauge(snapshot: snapshot, metric: .session, lineWidth: 10)
             MetricGauge(snapshot: snapshot, metric: .weekly, lineWidth: 10)
             VStack(alignment: .leading, spacing: 7) {
+                WeeklyTrendChart(snapshot: snapshot)
                 burn(snapshot)
                 perModel(snapshot)
                 Spacer(minLength: 0)
@@ -125,6 +126,8 @@ struct UsageWidgetView: View {
             }
             .frame(maxHeight: .infinity)
 
+            WeeklyTrendChart(snapshot: snapshot, showsDays: true)
+                .frame(height: 92)
             burn(snapshot)
             perModel(snapshot)
             staleMark(snapshot)

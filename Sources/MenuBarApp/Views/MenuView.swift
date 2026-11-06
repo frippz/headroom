@@ -36,6 +36,9 @@ struct MenuView: View {
                     Divider().padding(.vertical, 10)
                 }
                 gauges(snapshot)
+                WeeklyTrendChart(snapshot: snapshot, showsDays: true)
+                    .frame(height: 92)
+                    .padding(.top, 10)
                 burn(snapshot)
                 perModel(snapshot)
                 Divider().padding(.vertical, 10)
